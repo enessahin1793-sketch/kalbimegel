@@ -3,154 +3,173 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kalbe Koş 3D 💖</title>
+<title>Kalbim Sana Koştu 💖</title>
 
 <style>
   body { margin:0; overflow:hidden; background:#000; font-family:Arial,sans-serif; }
   #ui {
     position:fixed;
-    top:10px;
+    top:15px;
     width:100%;
     text-align:center;
     color:white;
-    font-size:18px;
+    font-size:20px;
     z-index:10;
   }
-  #restart {
+  #final {
     display:none;
-    margin-top:10px;
-    padding:8px 16px;
-    border:none;
-    border-radius:12px;
-    background:#ff69b4;
-    color:white;
-    font-size:16px;
+    position:fixed;
+    inset:0;
+    background:rgba(255,182,193,0.95);
+    text-align:center;
+    color:#c2185b;
+    z-index:20;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
   }
+  #final h1 { font-size:42px; margin-bottom:10px; }
+  #final p { font-size:22px; }
 </style>
 </head>
 
 <body>
 
-<div id="ui">
-  <div id="score">Skor: 0</div>
-  <div id="msg">Dokun / Space → Zıpla</div>
-  <button id="restart">Yeniden Başla 🔄</button>
+<div id="ui">Dokun / Space → Zıpla 💕</div>
+
+<div id="final">
+  <h1>Enes ❤️ Yasemin</h1>
+  <p>Kalbim hep sana koştu… 💌</p>
 </div>
+
+<audio id="music" loop>
+  <source src="https://cdn.pixabay.com/audio/2023/03/27/audio_0b2f0e1d9b.mp3" type="audio/mpeg">
+</audio>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
 
 <script>
-/* SAHNE */
+/* SCENE */
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb);
+scene.background = new THREE.Color(0xffe6ee);
 
-/* KAMERA */
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+/* CAMERA */
+const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
 camera.position.set(0,4,7);
 
 /* RENDER */
 const renderer = new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setSize(innerWidth, innerHeight);
 document.body.appendChild(renderer.domElement);
 
-/* IŞIK */
-const light = new THREE.DirectionalLight(0xffffff,1);
-light.position.set(5,10,5);
-scene.add(light);
+/* LIGHT */
+scene.add(new THREE.AmbientLight(0xffffff,0.9));
+const sun = new THREE.DirectionalLight(0xffffff,1);
+sun.position.set(10,20,10);
+scene.add(sun);
 
-/* ZEMİN */
+/* GROUND */
 const ground = new THREE.Mesh(
-  new THREE.BoxGeometry(200,1,10),
-  new THREE.MeshStandardMaterial({color:0x55aa55})
+  new THREE.BoxGeometry(300,1,12),
+  new THREE.MeshStandardMaterial({color:0x9be7a5})
 );
 ground.position.y = -0.5;
 scene.add(ground);
 
-/* PLAYER */
-const player = new THREE.Mesh(
-  new THREE.BoxGeometry(1,1,1),
+/* GIRL */
+const girl = new THREE.Mesh(
+  new THREE.BoxGeometry(0.8,1.5,0.8),
   new THREE.MeshStandardMaterial({color:0xff69b4})
 );
-player.position.y = 0.5;
-scene.add(player);
+girl.position.y = 0.75;
+scene.add(girl);
 
-/* ENGELLER */
-const obstacles = [];
-function spawnObstacle(x){
-  const obs = new THREE.Mesh(
-    new THREE.BoxGeometry(1,1,1),
-    new THREE.MeshStandardMaterial({color:0xff0000})
+/* HEART */
+const heart = new THREE.Mesh(
+  new THREE.SphereGeometry(0.6,32,32),
+  new THREE.MeshStandardMaterial({color:0xff1744})
+);
+heart.position.set(50,1,0);
+scene.add(heart);
+
+/* HEART PARTICLES */
+const hearts = [];
+function spawnHeart(){
+  const h = new THREE.Mesh(
+    new THREE.SphereGeometry(0.15,16,16),
+    new THREE.MeshStandardMaterial({color:0xff4d6d})
   );
-  obs.position.set(x,0.5,0);
-  scene.add(obs);
-  obstacles.push(obs);
+  h.position.copy(heart.position);
+  h.velocity = new THREE.Vector3(
+    (Math.random()-0.5)*0.2,
+    Math.random()*0.3,
+    (Math.random()-0.5)*0.2
+  );
+  scene.add(h);
+  hearts.push(h);
 }
-for(let i=10;i<200;i+=15) spawnObstacle(i);
 
-/* FİZİK */
+/* PHYSICS */
 let velY = 0;
 let onGround = true;
-let speed = 0.08;
-let score = 0;
-let gameOver = false;
+let speed = 0.22; // hızlı 💨
+let finished = false;
 
-/* ZIPLA */
+/* MUSIC START */
+const music = document.getElementById("music");
+document.body.addEventListener("click",()=>music.play(),{once:true});
+
+/* JUMP */
 function jump(){
-  if(onGround && !gameOver){
-    velY = 0.22;
+  if(onGround && !finished){
+    velY = 0.28;
     onGround = false;
   }
 }
-window.addEventListener("click", jump);
-window.addEventListener("touchstart", jump);
-window.addEventListener("keydown", e => { if(e.code==="Space") jump(); });
-
-/* UI */
-const scoreDiv = document.getElementById("score");
-const msgDiv = document.getElementById("msg");
-const restartBtn = document.getElementById("restart");
-
-restartBtn.onclick = () => location.reload();
+addEventListener("click", jump);
+addEventListener("touchstart", jump);
+addEventListener("keydown", e=>{ if(e.code==="Space") jump(); });
 
 /* LOOP */
 function animate(){
-  if(gameOver) return;
+  if(finished) return;
   requestAnimationFrame(animate);
 
-  player.position.x += speed;
-  score++;
-  scoreDiv.innerText = "Skor: " + score;
+  girl.position.x += speed;
 
-  // gravity
-  velY -= 0.012;
-  player.position.y += velY;
-  if(player.position.y<=0.5){
-    player.position.y=0.5;
-    velY=0;
-    onGround=true;
+  velY -= 0.013;
+  girl.position.y += velY;
+  if(girl.position.y <= 0.75){
+    girl.position.y = 0.75;
+    velY = 0;
+    onGround = true;
   }
 
-  // kamera
-  camera.position.x = player.position.x + 6;
+  camera.position.x = girl.position.x + 7;
 
-  // çarpışma
-  obstacles.forEach(o=>{
-    if(player.position.distanceTo(o.position)<1){
-      gameOver=true;
-      msgDiv.innerHTML="💔 GAME OVER<br>Enes ❤️ Yasemin";
-      restartBtn.style.display="inline-block";
-    }
+  heart.scale.setScalar(1 + Math.sin(Date.now()*0.005)*0.1);
+
+  // HEART HIT
+  if(girl.position.distanceTo(heart.position) < 1){
+    finished = true;
+    for(let i=0;i<30;i++) spawnHeart();
+    document.getElementById("final").style.display="flex";
+  }
+
+  hearts.forEach(h=>{
+    h.position.add(h.velocity);
+    h.velocity.y -= 0.01;
   });
 
   renderer.render(scene,camera);
 }
 animate();
 
-/* RESPONSIVE */
-window.addEventListener("resize",()=>{
-  camera.aspect=window.innerWidth/window.innerHeight;
+/* RESIZE */
+addEventListener("resize",()=>{
+  camera.aspect = innerWidth/innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth,window.innerHeight);
+  renderer.setSize(innerWidth,innerHeight);
 });
 </script>
 
