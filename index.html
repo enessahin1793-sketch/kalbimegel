@@ -7,29 +7,21 @@
 
 <style>
   body { margin:0; overflow:hidden; background:#000; font-family:Arial }
-
   #info {
-    position:fixed;
-    top:10px;
-    width:100%;
-    text-align:center;
-    color:#fff;
-    z-index:5;
+    position:fixed; top:10px; width:100%;
+    text-align:center; color:#fff; z-index:5;
   }
-
-  /* 🔒 BAŞTA TAMAMEN KAPALI */
   #final {
     display:none;
-    position:fixed;
-    inset:0;
+    position:fixed; inset:0;
     background:rgba(255,182,193,0.96);
+    display:flex;
     align-items:center;
     justify-content:center;
     flex-direction:column;
     color:#c2185b;
     z-index:20;
   }
-
   #final h1 { font-size:42px; margin:0 }
   #final p { font-size:20px; margin-top:10px }
 </style>
@@ -39,22 +31,24 @@
 
 <div id="info">Dokun / Space → Zıpla 💕</div>
 
-<!-- 🚫 OYUN BAŞINDA GÖRÜNMEZ -->
 <div id="final">
   <h1>Enes ❤️ Yasemin</h1>
   <p>Kalbim sana koştu… 💌</p>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+<audio id="music" loop>
+  <source src="https://cdn.pixabay.com/audio/2023/03/27/audio_0b2f0e1d9b.mp3" type="audio/mpeg">
+</audio>
 
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
 <script>
-/* SCENE */
+/* ===== SCENE ===== */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xffe6ee);
 
 /* CAMERA */
 const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
-camera.position.set(-3, 4, 8);
+camera.position.set(-5, 4, 8);
 
 /* RENDER */
 const renderer = new THREE.WebGLRenderer({antialias:true});
@@ -67,15 +61,21 @@ const sun = new THREE.DirectionalLight(0xffffff, 1);
 sun.position.set(10,20,10);
 scene.add(sun);
 
-/* GROUND */
-const ground = new THREE.Mesh(
-  new THREE.BoxGeometry(300,1,20),
-  new THREE.MeshStandardMaterial({color:0x9be7a5})
-);
-ground.position.y = -0.5;
-scene.add(ground);
+/* ===== SONSUZ ZEMİN ===== */
+const groundParts = [];
+const groundLength = 40;
 
-/* GIRL */
+for(let i=0;i<5;i++){
+  const g = new THREE.Mesh(
+    new THREE.BoxGeometry(groundLength,1,20),
+    new THREE.MeshStandardMaterial({color:0x9be7a5})
+  );
+  g.position.set(i*groundLength, -0.5, 0);
+  scene.add(g);
+  groundParts.push(g);
+}
+
+/* ===== KIZ ===== */
 const girl = new THREE.Group();
 
 const head = new THREE.Mesh(
@@ -109,15 +109,27 @@ girl.add(legL, legR);
 
 scene.add(girl);
 
-/* HEART */
+/* ===== ENGELLER ===== */
+const obstacles = [];
+for(let i=1;i<=7;i++){
+  const o = new THREE.Mesh(
+    new THREE.BoxGeometry(1,1.2,1),
+    new THREE.MeshStandardMaterial({color:0x8d6e63})
+  );
+  o.position.set(i*15 + 10, 0.6, 0);
+  scene.add(o);
+  obstacles.push(o);
+}
+
+/* ===== KALP ===== */
 const heart = new THREE.Mesh(
   new THREE.SphereGeometry(0.7,32,32),
   new THREE.MeshStandardMaterial({color:0xff1744})
 );
-heart.position.set(80,1,0);
+heart.position.set(140,1,0);
 scene.add(heart);
 
-/* GAME STATE */
+/* ===== GAME STATE ===== */
 let speed = 0.12;
 let velY = 0;
 let gravity = 0.01;
@@ -125,6 +137,13 @@ let jumpPower = 0.32;
 let onGround = true;
 let finished = false;
 let t = 0;
+
+/* MUSIC */
+const music = document.getElementById("music");
+music.volume = 0.25;
+document.body.addEventListener("click",()=>{
+  if(music.paused) music.play();
+},{once:true});
 
 /* INPUT */
 function jump(){
@@ -135,9 +154,9 @@ function jump(){
 }
 addEventListener("click", jump);
 addEventListener("touchstart", jump);
-addEventListener("keydown", e => { if(e.code==="Space") jump(); });
+addEventListener("keydown", e=>{ if(e.code==="Space") jump(); });
 
-/* LOOP */
+/* ===== LOOP ===== */
 function animate(){
   requestAnimationFrame(animate);
 
@@ -159,10 +178,23 @@ function animate(){
     camera.position.x = girl.position.x - 5;
     camera.lookAt(girl.position.x + 2, 1.5, 0);
 
-    /* 💖 SADECE BURADA AÇILIYOR */
+    // zemin döngüsü
+    groundParts.forEach(g=>{
+      if(g.position.x + groundLength < girl.position.x){
+        g.position.x += groundLength * groundParts.length;
+      }
+    });
+
+    // kalp kontrol
     if(girl.position.distanceTo(heart.position) < 1.2){
       finished = true;
       document.getElementById("final").style.display = "flex";
+
+      let vol = music.volume;
+      const up = setInterval(()=>{
+        if(vol < 0.85){ vol += 0.05; music.volume = vol; }
+        else clearInterval(up);
+      },120);
     }
   }
 
@@ -174,7 +206,7 @@ animate();
 addEventListener("resize",()=>{
   camera.aspect = innerWidth/innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight);
+  renderer.setSize(innerWidth, innerHeight);
 });
 </script>
 </body>
