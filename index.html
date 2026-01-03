@@ -47,8 +47,9 @@ body {
   <p>Kalbim sana koştu… 💌</p>
 </div>
 
+<!-- 🎵 ŞARKI (OYUN BOYUNCA ÇALAR) -->
 <audio id="music" loop>
-  <source src="https://cdn.pixabay.com/audio/2023/03/27/audio_0b2f0e1d9b.mp3">
+  <source src="https://cdn.pixabay.com/audio/2022/10/30/audio_5b8b9c1c6a.mp3" type="audio/mpeg">
 </audio>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
@@ -72,7 +73,7 @@ const sun = new THREE.DirectionalLight(0xffffff, 1);
 sun.position.set(10,20,10);
 scene.add(sun);
 
-/* ZEMİN (PARÇALI – SONSUZ) */
+/* ZEMİN – SONSUZ */
 const groundPieces = [];
 for(let i=0;i<5;i++){
   const g = new THREE.Mesh(
@@ -84,7 +85,7 @@ for(let i=0;i<5;i++){
   groundPieces.push(g);
 }
 
-/* KIZ */
+/* KIZ KARAKTER */
 const girl = new THREE.Group();
 
 const head = new THREE.Mesh(
@@ -121,16 +122,16 @@ scene.add(girl);
 /* ENGELLER */
 const obstacles = [];
 function spawnObstacle(x){
-  const obs = new THREE.Mesh(
+  const o = new THREE.Mesh(
     new THREE.BoxGeometry(0.8,1.2,0.8),
     new THREE.MeshStandardMaterial({ color:0x8b0000 })
   );
-  obs.position.set(x, 0.6, 0);
-  scene.add(obs);
-  obstacles.push(obs);
+  o.position.set(x, 0.6, 0);
+  scene.add(o);
+  obstacles.push(o);
 }
 for(let i=1;i<=6;i++){
-  spawnObstacle(i * 20 + Math.random()*10);
+  spawnObstacle(i*20 + Math.random()*10);
 }
 
 /* KALP */
@@ -151,12 +152,16 @@ let finished = false;
 let dead = false;
 let t = 0;
 
-/* MÜZİK */
+/* 🎵 MÜZİK – OTOMATİK BAŞLAT */
 const music = document.getElementById("music");
-music.volume = 0.3;
-document.body.addEventListener("click",()=>{
-  if(music.paused) music.play();
-});
+music.volume = 0.25;
+
+function startMusic(){
+  if(music.paused) music.play().catch(()=>{});
+}
+document.body.addEventListener("click", startMusic, { once:true });
+document.body.addEventListener("touchstart", startMusic, { once:true });
+document.body.addEventListener("keydown", startMusic, { once:true });
 
 /* ZIPLA */
 function jump(){
@@ -176,7 +181,6 @@ function animate(){
   if(!finished && !dead){
     girl.position.x += speed;
 
-    // yerçekimi
     velY -= gravity;
     girl.position.y += velY;
     if(girl.position.y <= 0){
@@ -185,23 +189,19 @@ function animate(){
       onGround = true;
     }
 
-    // bacak
     t += 0.15;
     legL.rotation.x = Math.sin(t)*0.8;
     legR.rotation.x = -Math.sin(t)*0.8;
 
-    // kamera
     camera.position.x = girl.position.x - 5;
     camera.lookAt(girl.position.x + 2, 1.5, 0);
 
-    // zemin döngüsü
     groundPieces.forEach(g=>{
       if(g.position.x + 25 < girl.position.x){
         g.position.x += 250;
       }
     });
 
-    // engel kontrol
     obstacles.forEach(o=>{
       if(Math.abs(girl.position.x - o.position.x) < 0.6 &&
          Math.abs(girl.position.y - o.position.y) < 1){
@@ -210,7 +210,6 @@ function animate(){
       }
     });
 
-    // kalp
     if(girl.position.distanceTo(heart.position) < 1.2){
       finished = true;
       document.getElementById("final").style.display = "flex";
