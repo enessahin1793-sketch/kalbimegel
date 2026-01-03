@@ -4,39 +4,51 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kalbime Koş 💖</title>
+
 <style>
   body { margin:0; overflow:hidden; background:#000; font-family:Arial }
+
   #info {
-    position:fixed; top:10px; width:100%;
-    text-align:center; color:#fff; z-index:5;
+    position:fixed;
+    top:10px;
+    width:100%;
+    text-align:center;
+    color:#fff;
+    z-index:5;
   }
+
+  /* 🔒 BAŞTA TAMAMEN KAPALI */
   #final {
     display:none;
-    position:fixed; inset:0;
-    background:rgba(255,182,193,0.95);
-    display:flex;
-    flex-direction:column;
+    position:fixed;
+    inset:0;
+    background:rgba(255,182,193,0.96);
     align-items:center;
     justify-content:center;
+    flex-direction:column;
     color:#c2185b;
-    z-index:10;
+    z-index:20;
   }
+
   #final h1 { font-size:42px; margin:0 }
-  #final p { font-size:20px }
+  #final p { font-size:20px; margin-top:10px }
 </style>
 </head>
 
 <body>
+
 <div id="info">Dokun / Space → Zıpla 💕</div>
 
+<!-- 🚫 OYUN BAŞINDA GÖRÜNMEZ -->
 <div id="final">
   <h1>Enes ❤️ Yasemin</h1>
   <p>Kalbim sana koştu… 💌</p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+
 <script>
-/* ---------- SCENE ---------- */
+/* SCENE */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xffe6ee);
 
@@ -63,10 +75,9 @@ const ground = new THREE.Mesh(
 ground.position.y = -0.5;
 scene.add(ground);
 
-/* ---------- GIRL CHARACTER ---------- */
+/* GIRL */
 const girl = new THREE.Group();
 
-// head
 const head = new THREE.Mesh(
   new THREE.SphereGeometry(0.45,32,32),
   new THREE.MeshStandardMaterial({color:0xffe0bd})
@@ -74,7 +85,6 @@ const head = new THREE.Mesh(
 head.position.y = 2.1;
 girl.add(head);
 
-// hair
 const hair = new THREE.Mesh(
   new THREE.SphereGeometry(0.48,32,32),
   new THREE.MeshStandardMaterial({color:0x3b2f2f})
@@ -82,7 +92,6 @@ const hair = new THREE.Mesh(
 hair.position.y = 2.25;
 girl.add(hair);
 
-// dress (konik, dikdörtgen değil!)
 const dress = new THREE.Mesh(
   new THREE.ConeGeometry(0.6,1.4,32),
   new THREE.MeshStandardMaterial({color:0xff69b4})
@@ -90,7 +99,6 @@ const dress = new THREE.Mesh(
 dress.position.y = 1.2;
 girl.add(dress);
 
-// legs
 const legGeo = new THREE.BoxGeometry(0.2,0.9,0.2);
 const legMat = new THREE.MeshStandardMaterial({color:0x333});
 const legL = new THREE.Mesh(legGeo, legMat);
@@ -100,21 +108,20 @@ legR.position.set(0.18,0.45,0);
 girl.add(legL, legR);
 
 scene.add(girl);
-girl.position.set(0,0,0);
 
-/* ---------- HEART ---------- */
+/* HEART */
 const heart = new THREE.Mesh(
   new THREE.SphereGeometry(0.7,32,32),
   new THREE.MeshStandardMaterial({color:0xff1744})
 );
-heart.position.set(80,1,0); // UZAKTA
+heart.position.set(80,1,0);
 scene.add(heart);
 
-/* ---------- GAME STATE ---------- */
-let speed = 0.12;        // YAVAŞ
+/* GAME STATE */
+let speed = 0.12;
 let velY = 0;
-let gravity = 0.01;     // HAFİF
-let jumpPower = 0.32;   // YÜKSEK ZIPLAMA
+let gravity = 0.01;
+let jumpPower = 0.32;
 let onGround = true;
 let finished = false;
 let t = 0;
@@ -152,6 +159,7 @@ function animate(){
     camera.position.x = girl.position.x - 5;
     camera.lookAt(girl.position.x + 2, 1.5, 0);
 
+    /* 💖 SADECE BURADA AÇILIYOR */
     if(girl.position.distanceTo(heart.position) < 1.2){
       finished = true;
       document.getElementById("final").style.display = "flex";
@@ -166,7 +174,7 @@ animate();
 addEventListener("resize",()=>{
   camera.aspect = innerWidth/innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
+  renderer.setSize(innerWidth,innerHeight);
 });
 </script>
 </body>
